@@ -1,6 +1,7 @@
 module Main exposing (..)
 
 import Browser
+import Event
 import Html exposing (Html)
 import Html.Attributes
 
@@ -32,12 +33,15 @@ type alias Flags =
 
 
 type alias Model =
-    {}
+    { event : Event.Model
+    }
 
 
 init : Flags -> ( Model, Cmd Msg )
 init flags =
-    ( {}, Cmd.none )
+    ( { event = Event.defaults 0 }
+    , Cmd.none
+    )
 
 
 
@@ -45,14 +49,20 @@ init flags =
 
 
 type Msg
-    = NoOp
+    = EventMsg Event.Msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        NoOp ->
-            ( model, Cmd.none )
+        EventMsg sub ->
+            let
+                ( subModel, subCmd ) =
+                    Event.update sub model.event
+            in
+            ( { model | event = subModel }
+            , Cmd.map EventMsg subCmd
+            )
 
 
 
@@ -72,11 +82,8 @@ view : Model -> Html Msg
 view model =
     Html.div
         []
-        [ Html.h1
-            []
-            [ Html.text "Elm Application"
-            ]
-        , Html.div
+        [ Html.div
             [ Html.Attributes.id "calendar" ]
             []
+        , Event.view model.event |> Html.map EventMsg
         ]
