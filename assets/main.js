@@ -6,9 +6,10 @@ import './main.css';
 
 const MESSAGES = {
     // Elm -> JS
-    ADD_EVENT: "ADD_EVENT"
+    ADD_EVENT: "ADD_EVENT",
 
     // JS -> Elm
+    CLICKED_EVENT: "CLICKED_EVENT"
 }
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -84,7 +85,23 @@ document.addEventListener('DOMContentLoaded', function() {
                 url: 'http://google.com/',
                 start: '2018-01-28'
             }
-        ]
+        ],
+        eventClick: (info) => {
+            console.log("Clicked event");
+            console.log(info.event);
+            const event = {
+                id: info.event.id,
+                title: info.event.title,
+                description: info.event.extendedProps.description,
+                start: info.event.start.toISOString(),
+                end: info.event.end.toISOString()
+            };
+            const message = {
+                type: MESSAGES.CLICKED_EVENT,
+                value: event
+            };
+            app.ports.messageReceiver.send(message);
+        }
     });
 
     calendar.render();

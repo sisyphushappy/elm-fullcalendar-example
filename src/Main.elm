@@ -92,7 +92,22 @@ update msg model =
                     )
 
         ReceivedMessage value ->
-            ( model, Cmd.none )
+            let
+                _ =
+                    Debug.log "ReceivedMessage" (Json.Encode.encode 2 value)
+            in
+            case Json.Decode.decodeValue Ports.receivePayloadDecoder value of
+                Err err ->
+                    let
+                        _ =
+                            Debug.log "Error decoding message" err
+                    in
+                    ( model, Cmd.none )
+
+                Ok receivePayload ->
+                    case receivePayload of
+                        Ports.ClickedEvent event ->
+                            ( { model | event = event }, Cmd.none )
 
 
 

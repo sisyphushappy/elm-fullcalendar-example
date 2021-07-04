@@ -5,6 +5,8 @@ import Html exposing (Html)
 import Html.Attributes
 import Html.Events
 import Iso8601
+import Json.Decode
+import Json.Decode.Extra as DecodeX
 import Json.Encode
 import Maybe.Extra as MaybeX
 import Time exposing (Posix)
@@ -134,7 +136,7 @@ defaultTime =
 encode : Model -> Json.Encode.Value
 encode model =
     Json.Encode.object
-        [ ( "maybeId", MaybeX.unwrap Json.Encode.null Json.Encode.int model.maybeId )
+        [ ( "id", MaybeX.unwrap Json.Encode.null Json.Encode.int model.maybeId )
         , ( "title", Json.Encode.string model.title )
         , ( "description", Json.Encode.string model.description )
         , ( "start"
@@ -147,7 +149,41 @@ encode model =
           )
         ]
 
-
+fullCalendarDecoder : Json.Decode.Decoder Model
+fullCalendarDecoder =
+    Json.Decode.succeed Model
+        |> DecodeX.andMap
+            (Json.Decode.field "id" <|
+                Json.Decode.oneOf
+                    [ Json.Decode.int
+                        |> Json.Decode.andThen
+                            (\id -> Json.Decode.succeed (Just id))
+                    , Json.Decode.succeed Nothing
+                    ]
+            )
+        |> DecodeX.andMap (Json.Decode.field "title" Json.Decode.string)
+        |> DecodeX.andMap (Json.Decode.field "description" Json.Decode.string)
+        |> DecodeX.andMap (Json.Decode.field "start" Json.Decode.string)
+        |> DecodeX.andMap (Json.Decode.field "end" Json.Decode.string)
+        |> DecodeX.andMap
+            (Json.Decode.field "start"
+                (Iso8601.decoder
+                    |> Json.Decode.andThen
+                            (\time ->
+                                Json.Decode.succeed (Just time)
+                            )
+                )
+            )
+        |> DecodeX.andMap
+            (Json.Decode.field "end"
+                (Iso8601.decoder
+                    |> Json.Decode.andThen
+                            (\time ->
+                                Json.Decode.succeed (Just time)
+                            )
+                )
+            )
+        |> DecodeX.andMap (Json.Decode.succeed "")
 
 -- VIEW
 
