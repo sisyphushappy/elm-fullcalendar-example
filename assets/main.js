@@ -4,10 +4,21 @@ import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import './main.css';
 
-document.addEventListener('DOMContentLoaded', function() {
-    var calendarEl = document.getElementById('calendar');
+const MESSAGES = {
+    // Elm -> JS
+    ADD_EVENT: "ADD_EVENT"
 
-    var calendar = new Calendar(calendarEl, {
+    // JS -> Elm
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const app = Elm.Main.init({
+        node: document.getElementById('myapp')
+    });
+
+    const calendarEl = document.getElementById('calendar');
+
+    const calendar = new Calendar(calendarEl, {
         plugins: [ interactionPlugin, dayGridPlugin, timeGridPlugin ],
         headerToolbar: {
             left: 'prev,next today',
@@ -77,4 +88,14 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     calendar.render();
+
+    // PORTS LOGIC
+    app.ports.sendMessage.subscribe(function(data) {
+        console.log(data);
+        const type = data["type"];
+        const payload = data["value"];
+        if (type === MESSAGES.ADD_EVENT) {
+            calendar.addEvent(payload);
+        }
+    });
 });

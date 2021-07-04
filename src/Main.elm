@@ -1,10 +1,13 @@
-module Main exposing (..)
+port module Main exposing (..)
 
 import Browser
 import Event
 import Html exposing (Html)
 import Html.Attributes
-import Html.Events exposing (onClick)
+import Html.Events
+import Json.Decode
+import Json.Encode
+import Ports
 
 
 
@@ -19,6 +22,16 @@ main =
         , update = update
         , subscriptions = subscriptions
         }
+
+
+
+-- PORTS
+
+
+port sendMessage : Json.Encode.Value -> Cmd msg
+
+
+port messageReceiver : (Json.Decode.Value -> msg) -> Sub msg
 
 
 
@@ -40,7 +53,7 @@ type alias Model =
 
 init : Flags -> ( Model, Cmd Msg )
 init flags =
-    ( { event = Event.defaults 0 }
+    ( { event = Event.defaults Nothing }
     , Cmd.none
     )
 
@@ -52,6 +65,7 @@ init flags =
 type Msg
     = EventMsg Event.Msg
     | SubmittedEvent
+    | ReceivedMessage Json.Decode.Value
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -67,15 +81,27 @@ update msg model =
             )
 
         SubmittedEvent ->
+            case Event.validate model.event of
+                False ->
+                    ( model, Cmd.none )
+
+                True ->
+                    ( model
+                    , sendMessage <|
+                        Ports.encodeSendMessage "ADD_EVENT" (Event.encode model.event)
+                    )
+
+        ReceivedMessage value ->
             ( model, Cmd.none )
+
 
 
 -- SUBSCRIPTIONS
 
 
 subscriptions : Model -> Sub Msg
-subscriptions model =
-    Sub.none
+subscriptions _ =
+    messageReceiver ReceivedMessage
 
 
 

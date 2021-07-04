@@ -5,6 +5,7 @@ import Html exposing (Html)
 import Html.Attributes
 import Html.Events
 import Iso8601
+import Json.Encode
 import Maybe.Extra as MaybeX
 import Time exposing (Posix)
 
@@ -14,7 +15,7 @@ import Time exposing (Posix)
 
 
 type alias Model =
-    { id : Int
+    { maybeId : Maybe Int
     , title : String
     , description : String
     , startTimeString : String
@@ -25,9 +26,9 @@ type alias Model =
     }
 
 
-defaults : Int -> Model
-defaults id =
-    { id = id
+defaults : Maybe Int -> Model
+defaults maybeId =
+    { maybeId = maybeId
     , title = ""
     , description = ""
     , startTimeString = ""
@@ -35,7 +36,8 @@ defaults id =
     , maybeStartTime = Nothing
     , maybeEndTime = Nothing
     , error = ""
-    } |> setError
+    }
+        |> setError
 
 
 
@@ -118,6 +120,32 @@ setError model =
 
         True ->
             { model | error = "" }
+
+
+
+-- API
+
+
+defaultTime : String
+defaultTime =
+    Iso8601.fromTime <| Time.millisToPosix 0
+
+
+encode : Model -> Json.Encode.Value
+encode model =
+    Json.Encode.object
+        [ ( "maybeId", MaybeX.unwrap Json.Encode.null Json.Encode.int model.maybeId )
+        , ( "title", Json.Encode.string model.title )
+        , ( "description", Json.Encode.string model.description )
+        , ( "start"
+          , Json.Encode.string <|
+                MaybeX.unwrap defaultTime Iso8601.fromTime model.maybeStartTime
+          )
+        , ( "end"
+          , Json.Encode.string <|
+                MaybeX.unwrap defaultTime Iso8601.fromTime model.maybeEndTime
+          )
+        ]
 
 
 
