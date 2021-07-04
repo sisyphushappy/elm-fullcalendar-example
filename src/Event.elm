@@ -1,9 +1,11 @@
 module Event exposing (..)
 
+import Bool.Extra as BoolX exposing (all)
 import Html exposing (Html)
 import Html.Attributes
 import Html.Events
 import Iso8601
+import Maybe.Extra as MaybeX
 import Time exposing (Posix)
 
 
@@ -19,6 +21,7 @@ type alias Model =
     , endTimeString : String
     , maybeStartTime : Maybe Posix
     , maybeEndTime : Maybe Posix
+    , error : String
     }
 
 
@@ -31,7 +34,8 @@ defaults id =
     , endTimeString = ""
     , maybeStartTime = Nothing
     , maybeEndTime = Nothing
-    }
+    , error = ""
+    } |> setError
 
 
 
@@ -53,12 +57,12 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         ChangedTitle string ->
-            ( { model | title = string }
+            ( { model | title = string } |> setError
             , Cmd.none
             )
 
         ChangedDescription string ->
-            ( { model | description = string }
+            ( { model | description = string } |> setError
             , Cmd.none
             )
 
@@ -78,6 +82,7 @@ update msg model =
                         | startTimeString = string
                         , maybeStartTime = maybeParsedTime
                       }
+                        |> setError
                     , Cmd.none
                     )
 
@@ -86,8 +91,33 @@ update msg model =
                         | endTimeString = string
                         , maybeEndTime = maybeParsedTime
                       }
+                        |> setError
                     , Cmd.none
                     )
+
+
+
+-- VALIDATION
+
+
+validate : Model -> Bool
+validate model =
+    BoolX.all
+        [ not <| String.isEmpty model.title
+        , not <| String.isEmpty model.description
+        , MaybeX.isJust model.maybeStartTime
+        , MaybeX.isJust model.maybeEndTime
+        ]
+
+
+setError : Model -> Model
+setError model =
+    case validate model of
+        False ->
+            { model | error = "ERROR: Event validation failed" }
+
+        True ->
+            { model | error = "" }
 
 
 
@@ -157,4 +187,8 @@ view model =
             , maybeTime = model.maybeEndTime
             , msg = ChangedDate End
             }
+        , Html.br
+            []
+            []
+        , Html.text model.error
         ]

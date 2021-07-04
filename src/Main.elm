@@ -4,6 +4,7 @@ import Browser
 import Event
 import Html exposing (Html)
 import Html.Attributes
+import Html.Events exposing (onClick)
 
 
 
@@ -50,6 +51,7 @@ init flags =
 
 type Msg
     = EventMsg Event.Msg
+    | SubmittedEvent
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -64,6 +66,8 @@ update msg model =
             , Cmd.map EventMsg subCmd
             )
 
+        SubmittedEvent ->
+            ( model, Cmd.none )
 
 
 -- SUBSCRIPTIONS
@@ -86,4 +90,8 @@ view model =
             [ Html.Attributes.id "calendar" ]
             []
         , Event.view model.event |> Html.map EventMsg
+        , Html.button
+            [ Html.Events.onClick SubmittedEvent
+            ]
+            [ Html.text "Submit" ]
         ]
