@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>Main</title>
+
+        <!-- ELM APPLICATION CODE -->
+        <script src="elm.js"></script>
+
+        <!-- FULLCALENDAR SOURCE CODE -->
+        <link href='node_modules/fullcalendar/main.css' rel='stylesheet' />
+        <script src='node_modules/fullcalendar/main.js'></script>
+    </head>
+
+    <body>
+
+        <!-- FULLCALENDAR DOM ELEMENT -->
+        <!-- <div id='calendar'></div> -->
+
+        <!-- ELM APPLICATION DOM ELEMENT -->
+        <div id="myapp"></div>
+
+        <!-- INITIALIZE ELM APPLICATION -->
+        <script>
+            var app = Elm.Main.init({
+                node: document.getElementById('myapp')
+            });
+        </script>
+
+        <!-- INITIALIZE FULLCALENDAR -->
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                var calendarEl = document.getElementById('calendar');
+                var calendar = new FullCalendar.Calendar(calendarEl, {
+                    initialView: 'dayGridMonth'
+                });
+                calendar.render();
+            });
+        </script>
+    </body>
+</html>
